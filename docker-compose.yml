@@ -1,0 +1,104 @@
+services:
+  # Main Rails container
+  api:
+    build: .
+    container_name: rails_genius_monolithic_api
+    entrypoint: ["docker-entrypoint.sh"]
+    command: ["rails", "server", "-b", "0.0.0.0"]
+    volumes:
+      - .:/app
+      - rails_genius_monolithic_bundle_cache:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    environment:
+      RAILS_ENV: development
+      DB_HOST: rails_genius_monolithic_development
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: rails_genius_monolithic_development
+      DB_TEST_HOST: rails_genius_monolithic_test
+      DB_TEST_NAME: rails_genius_monolithic_test
+      DB_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      rails_genius_monolithic_development:
+        condition: service_healthy
+      rails_genius_monolithic_test:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - rails_genius_monolithic_network
+
+  # PostgreSQL database for development
+  rails_genius_monolithic_development:
+    image: postgres:16-alpine
+    container_name: rails_genius_monolithic_development
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rails_genius_monolithic_development
+    volumes:
+      - rails_genius_monolithic_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - rails_genius_monolithic_network
+    # Prevents container from being automatically recreated
+    # and preserves volume data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL database for test
+  rails_genius_monolithic_test:
+    image: postgres:16-alpine
+    container_name: rails_genius_monolithic_test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rails_genius_monolithic_test
+    volumes:
+      - rails_genius_monolithic_postgres_test_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - rails_genius_monolithic_network
+    # Prevents container from being automatically recreated
+    # and preserves volume data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis container
+  redis:
+    image: redis:7-alpine
+    container_name: rails_genius_monolithic_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - rails_genius_monolithic_network
+
+# Volumes
+# IMPORTANT: These volumes persist database data
+# NEVER run 'docker compose down -v' as it will delete these volumes
+volumes:
+  rails_genius_monolithic_bundle_cache:
+  rails_genius_monolithic_postgres_data:
+    # Persistent volume for development data
+    # Data persists even if container is rebuilt
+  rails_genius_monolithic_postgres_test_data:
+    # Persistent volume for test data
+    # Data persists even if container is rebuilt
+
+# Network for containers
+networks:
+  rails_genius_monolithic_network:
+    driver: bridge
+
