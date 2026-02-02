@@ -2,7 +2,7 @@ services:
   # Main Rails container
   api:
     build: .
-    container_name: rails_genius_monolithic_api
+    container_name: rgm_api
     entrypoint: ["docker-entrypoint.sh"]
     command: ["rails", "server", "-b", "0.0.0.0"]
     volumes:

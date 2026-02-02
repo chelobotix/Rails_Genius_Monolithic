@@ -18,6 +18,9 @@ gem "jbuilder"
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "kamal", require: false
 
+# Mobility for internationalization [https://github.com/discourse/mobility]
+gem "mobility"
+
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
 
