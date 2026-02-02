@@ -84,3 +84,5 @@ group :test do
   # VCR for recording and playing back HTTP requests [https://github.com/vcr/vcr]
   gem "vcr", "~> 6.4"
 end
+
+gem "devise", "~> 5.0"
