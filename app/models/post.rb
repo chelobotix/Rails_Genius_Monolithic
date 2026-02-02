@@ -1,5 +1,6 @@
 class Post < ApplicationRecord
   extend Mobility
+  include AASM
 
   # TRANSLATIONS
   translates :title, type: :string, locale_accessors: [ :en, :es, :pt ]
@@ -22,4 +23,27 @@ class Post < ApplicationRecord
   validates :words, presence: true
   validates :year, presence: true
   validates :user_id, presence: true
+
+  # AASM STATE MACHINE
+  aasm column: :status do
+    state :draft, initial: true
+    state :published
+    state :archived
+
+    event :publish do
+      transitions from: :draft, to: :published
+    end
+
+    event :archive do
+      transitions from: :published, to: :archived
+    end
+
+    event :unpublish do
+      transitions from: :published, to: :draft
+    end
+
+    event :unarchive do
+      transitions from: :archived, to: :published
+    end
+  end
 end

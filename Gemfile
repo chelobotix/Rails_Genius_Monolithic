@@ -1,5 +1,8 @@
 source "https://rubygems.org"
 
+# AASM for state machine [https://github.com/aasm/aasm]
+gem "aasm", "~> 5.5"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
