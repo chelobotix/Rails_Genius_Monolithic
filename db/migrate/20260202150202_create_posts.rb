@@ -9,7 +9,7 @@ class CreatePosts < ActiveRecord::Migration[8.1]
       t.string :tags, null: true
       t.integer :words, null: false
       t.boolean :featured, default: false
-      t.string :identifier, null: false
+      t.string :status, null: false, default: "draft"
       t.integer :year, null: false
 
       t.references :user, null: false, foreign_key: true

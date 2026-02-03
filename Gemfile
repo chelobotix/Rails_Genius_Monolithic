@@ -33,6 +33,9 @@ gem "propshaft"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
+# Pundit for authorization [https://github.com/varvet/pundit]
+gem "pundit", "~> 2.5"
+
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.0"
 
@@ -100,3 +103,4 @@ group :test do
   # WebMock for mocking HTTP requests [https://github.com/bblimke/webmock]
   gem "webmock", "~> 3.26"
 end
+
