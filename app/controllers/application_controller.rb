@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   include Pundit::Authorization
+  include CookieManager
 
   before_action :authenticate_user!
   before_action :check_locale
@@ -20,14 +21,7 @@ class ApplicationController < ActionController::Base
       I18n.locale = settings["locale"].to_sym
     else
       I18n.locale = :en
-
-      cookies.signed[:_rails_genius_settings] = {
-        value: { locale: "en" },
-        expires: 1.year.from_now,
-        secure: Rails.env.production?,
-        same_site: :strict,
-        httponly: false
-      }
+      set_locale_cookie(settings, "en")
     end
   end
 end

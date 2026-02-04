@@ -5,21 +5,12 @@ RSpec.describe ApplicationController, type: :request do
 
   let(:user) { create(:user) }
 
-  def set_signed_cookie(name, value)
-    # Usar el mismo verifier que Rails usa para cookies firmadas
-    verifier = Rails.application.message_verifier('signed cookie')
-    signed_value = verifier.generate(value)
-    cookies[name] = signed_value
-  end
-
   def build_signed_cookie_header(name, value)
-    # Usar el mismo verifier que Rails usa para cookies firmadas
-    # Rails usa 'signed cookie' como salt por defecto para cookies firmadas
     verifier = Rails.application.message_verifier('signed cookie')
     signed_value = verifier.generate(value)
-    # Convertir el nombre de símbolo a string si es necesario
+
     cookie_name = name.to_s
-    # El formato de cookie debe ser: nombre=valor_firmado
+
     cookie_value = "#{cookie_name}=#{signed_value}"
     { "Cookie" => cookie_value }
   end
