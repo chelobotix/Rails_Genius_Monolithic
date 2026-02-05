@@ -17,9 +17,10 @@ class ApplicationController < ActionController::Base
     allowed_locales = %w[en es pt]
     settings = cookies.signed[:_rails_genius_settings]
 
-    if settings.present? && settings.dig("locale").present? && allowed_locales.include?(settings["locale"])
+    if settings.is_a?(Hash) && settings.dig("locale").present? && allowed_locales.include?(settings["locale"])
       I18n.locale = settings["locale"].to_sym
     else
+      settings = {}
       I18n.locale = :en
       set_locale_cookie(settings, "en")
     end
