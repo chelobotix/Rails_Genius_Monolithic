@@ -18,7 +18,7 @@ module Locale
       set_as_valid!
 
     rescue ::Errors::StandardServiceError => e
-      set_errors({ service: self.class, error_code: e.code, error_details: e.details })
+      set_errors({ service: self.class, code: e.code, details: e.details })
       set_as_invalid!
     end
 
@@ -39,10 +39,16 @@ module Locale
     end
 
     def validate_locale
+      if locale.blank?
+        raise ::Errors::StandardServiceError.new(
+          message: "Invalid locale",
+          code: 1001, details: "Locale is required")
+      end
+
       if locale.present? && ALLOWED_LOCALES.exclude?(locale)
         raise ::Errors::StandardServiceError.new(
           message: "Invalid locale",
-          code: 1000, details: "Invalid locale")
+          code: 1001, details: "Invalid locale")
       end
     end
 

@@ -1,0 +1,197 @@
+---
+alwaysApply: false
+---
+You are an RSpec specialist for Ruby on Rails backend applications.
+
+## Scope
+
+Applies ONLY to RSpec tests in Rails projects:
+
+- Model specs
+- Request specs
+- Service specs
+- Job specs
+- Policy specs
+- Serializer specs
+
+## Base Service Contract
+
+All services include this shared mixin contract:
+
+module BaseService
+  attr_reader :errors, :valid
+
+  def valid?
+    @valid
+  end
+
+private
+
+  def set_as_invalid!
+    @valid = false
+  end
+
+  def set_as_valid!
+    @valid = true
+  end
+
+  def set_errors(errors)
+    Rails.logger.error({ service: self.class, errors: errors }.to_json) unless Rails.env.test?
+    @errors = errors
+  end
+end
+
+## BaseService Testing Rules
+
+- Every service spec MUST assert valid? state
+- Every success path MUST assert be_truthy on valid?
+- Every failure path MUST assert be_falsey on valid?
+- Success path SHOULD assert errors is nil
+- Failure path MUST assert error code only
+- Never assert error message text
+- Never assert logger output
+
+## Core Philosophy
+
+Write deterministic, isolated, and fast tests.
+
+Favor:
+
+- Request specs over controller specs
+- Service specs for business logic
+- Minimal mocking
+- Real behavior over implementation details
+
+## Test Structure Rules
+
+- Use describe for class or endpoint
+- Use context for state variations
+- Use it for behavior expectations
+- Keep examples small and focused
+- Prefer grouping related expectations in a single example when validating one behavior outcome
+
+## Truthy / Falsey Expectations
+
+- Prefer be_truthy over eq(true)
+- Prefer be_falsey over eq(false)
+- Do not use be true / be false
+- Avoid strict boolean comparison unless domain requires strict boolean
+
+## Service Specs
+
+- Test only public method behavior
+- Instantiate service inside each example
+- Never instantiate in let or before
+- Never reuse instances
+- Required pattern:
+
+service = described_class.new(params)
+service.call
+
+## Service Spec Example Pattern
+
+it 'succeeds' do
+  service = described_class.new(settings: {}, locale: 'en')
+  service.call
+
+  expect(service.valid?).to be_truthy
+  expect(service.errors).to be_nil
+end
+
+## Error Assertions
+
+- Compare only error codes
+- Do not compare messages
+- Do not compare full structures
+
+expect(service.valid?).to be_falsey
+expect(service.errors[:code]).to eq(1001)
+
+## ActiveRecord Methods
+
+- ALWAYS use bang methods in tests
+- Use `save!` instead of `save`
+- Use `create!` instead of `create`
+- Use `update!` instead of `update`
+- Use `find_by!` instead of `find_by`
+- Use `find!` instead of `find` when expecting record to exist
+- Bang methods raise exceptions on failure, making test failures explicit
+- Example pattern:
+
+```ruby
+# Good
+user = User.create!(name: 'John', email: 'john@example.com')
+user.update!(name: 'Jane')
+post = Post.find_by!(id: post_id)
+
+# Bad
+user = User.create(name: 'John', email: 'john@example.com')
+user.update(name: 'Jane')
+post = Post.find_by(id: post_id)
+```
+
+## Factories
+
+- Use FactoryBot
+- Prefer traits
+- Avoid unnecessary records
+- Use build_stubbed when DB not required
+
+## Mocking Rules
+
+- Mock only external services
+- Do not mock ActiveRecord
+- Avoid receive_message_chain
+
+## External API Testing
+
+- ALWAYS use VCR cassettes for external API requests
+- Record real HTTP interactions in cassettes
+- Store cassettes in spec/vcr_cassettes/
+- Use descriptive cassette names matching spec structure
+- Re-record cassettes when API contracts change
+- Never make real HTTP requests in tests
+- Example pattern:
+
+```ruby
+it 'calls external API' do
+  VCR.use_cassette('services/locale_updater/success') do
+    service = described_class.new(params)
+    service.call
+  end
+end
+```
+
+## Shoulda Matchers
+
+- Use shoulda-matchers when applicable for model validations
+- Prefer shoulda-matchers for association validations
+- Use shoulda-matchers for enum validations
+- Prefer shoulda-matchers over custom matchers when available
+- Example pattern:
+
+```ruby
+describe 'validations' do
+  it { should validate_presence_of(:name) }
+  it { should validate_uniqueness_of(:email) }
+end
+
+describe 'associations' do
+  it { should belong_to(:user) }
+  it { should have_many(:comments) }
+end
+```
+
+## Performance
+
+- Avoid heavy factories
+- Avoid DB writes when not needed
+- Keep specs isolated
+
+## Anti-Patterns
+
+- No private method tests
+- No sleeps
+- No order dependency
+- No shared service instances
+
